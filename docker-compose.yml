@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  fastapi_objobssap_api:
+    build: .
+    command: bash -c 'while !</dev/tcp/fastapi_objobssap_db/5432; do sleep 1; done; alembic upgrade head; uvicorn fastapi_objobssap.main:app --host 0.0.0.0 --port 8000'
+    volumes:
+      - .:/app
+    ports:
+      - 8000:8000
+    environment:
+      - POSTGRES_DATABASE_URL=postgresql://test:test@fastapi_objobssap_db:5432/objobssap_db
+    depends_on:
+      - fastapi_objobssap_db
+    networks:
+      - fastapi_objobssap_network
+
+  fastapi_objobssap_db:
+    image: postgres:15-alpine
+    volumes:
+      - fastapi_objobssap_volume:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+      - POSTGRES_DB=objobssap_db
+    networks:
+      - fastapi_objobssap_network
+
+volumes:
+  fastapi_objobssap_volume:
+
+
+networks:
+  fastapi_objobssap_network:
