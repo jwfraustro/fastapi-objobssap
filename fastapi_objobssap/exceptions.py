@@ -13,9 +13,8 @@ VOTABLE_ERROR_XML = """<?xml version="1.0" encoding="UTF-8"?>
   <INFO ID="Error" name="Error" value="{error}"/>
 </VOTABLE>"""
 
+
 # Error handlers
-
-
 def votable_error_response(message: str, status_code: int) -> Response:
     """Create a VOTable error response.
 
@@ -23,6 +22,7 @@ def votable_error_response(message: str, status_code: int) -> Response:
     """
     xml_response = XMLResponse(content=VOTABLE_ERROR_XML.format(error=message), status_code=status_code)
     return xml_response
+
 
 async def general_exception_handler(request, exc) -> XMLResponse:  # pylint: disable=unused-argument
     """

@@ -3,11 +3,11 @@
 
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Query
+from astropy.time import Time
+from fastapi import APIRouter, Query
 from fastapi_restful.cbv import cbv
 
 from fastapi_objobssap import schemas
-from fastapi_objobssap.config.database import get_db
 from fastapi_objobssap.services import perform_objobssap_operation
 
 objobssap_router = APIRouter()
@@ -45,7 +45,7 @@ class ObjObsSAPRouter:
                 description="Constraint on the minimum observability of the object in seconds.",
                 example=600,
                 ge=0,
-                alias="MINOBS",
+                alias="MIN_OBS",
             ),
         ] = None,
         facility: Annotated[
@@ -73,7 +73,6 @@ class ObjObsSAPRouter:
                 alias="RESPONSEFORMAT",
             ),
         ] = "votable",
-        db=Depends(get_db),
     ):
         """Perform an ObjObsSAP query."""
 
@@ -81,6 +80,9 @@ class ObjObsSAPRouter:
 
         if time:
             time = schemas.TimeParameter(TIME=time)
+        else:
+            # If no time is provided, default to the current day, and a week after
+            time = schemas.TimeParameter(start=Time.now().mjd, end=Time.now().mjd + 7)
 
         data = perform_objobssap_operation(
             pos=position,
@@ -89,7 +91,6 @@ class ObjObsSAPRouter:
             facility=facility,
             maxrec=maxrec,
             response_format=responseformat,
-            db=db,
         )
 
         return data

@@ -1,10 +1,12 @@
 # FastAPI-ObjObsSAP
 
-This project is a Python implementation of the proposed IVOA ObjObsSAP standard using [FastAPI](https://fastapi.tiangolo.com/).
+This project is an example Python implementation of the proposed IVOA ObjObsSAP standard using [FastAPI](https://fastapi.tiangolo.com/).
+
+This example service provides an API to calculate observable times for celestial objects from an example telescope location (Baltimore, MD, USA) using the [Astroplan](https://astroplan.readthedocs.io/en/latest/) library.
 
 ## Getting Started
 
-Running the project with docker-compose is the recommended way to get started quickly. It sets up a PostgreSQL database with simulated data and runs the FastAPI application. By default, the api will be available at `http://localhost:8000/query`.
+Running the project with docker-compose is the recommended way to get started quickly. By default, the api will be available at `http://localhost:8000/query`.
 
 Additionally, the VOSI Capabilities endpoint is available at `http://localhost:8000/capabilities`, which provides information about the available operations and their parameters.
 
@@ -27,7 +29,7 @@ docker-compose up
 ```bash
 conda env create -f environment.yml
 conda activate fastapi-objobssap
-pip install - requirements.txt
+pip install -r requirements.txt
 pip install -e .
 uvicorn fastapi_objobssap.main:app --reload
 ```

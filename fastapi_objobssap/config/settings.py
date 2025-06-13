@@ -9,8 +9,7 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """The settings for the application."""
 
-    # DB Settings
-    POSTGRES_DATABASE_URL: str = os.environ.get("POSTGRES_DATABASE_URL")
+    ROOT_PATH: str = os.getenv("ROOT_PATH", "")
 
     class Config:
         """The configuration for the settings."""

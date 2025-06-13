@@ -2,7 +2,99 @@
 
 from enum import StrEnum
 
+from astropy.time import Time
 from pydantic import BaseModel, Field, model_validator
+
+OBJOBSSAP_METADATA = [
+    {
+        "column_name": "t_validity",
+        "utype": "Char.TimeAxis.Coverage.Time",
+        "ucd": "time.validity",
+        "unit": "d",
+        "datatype": "float",
+    },
+    {
+        "column_name": "validity_accuracy",
+        "datatype": "char",
+        "arraysize": "*",
+    },
+    {"column_name": "validity_predictor", "datatype": "char", "arraysize": "*"},
+    {
+        "column_name": "t_start",
+        "utype": "Char.TimeAxis.Coverage.Bounds.Limits.StartTime",
+        "ucd": "time.start",
+        "unit": "d",
+        "datatype": "float",
+    },
+    {
+        "column_name": "t_stop",
+        "utype": "Char.TimeAxis.Coverage.Bounds.Limits.StopTime",
+        "ucd": "time.end",
+        "unit": "d",
+        "datatype": "float",
+    },
+    {
+        "column_name": "t_observability",
+        "utype": "Char.TimeAxis.Coverage.Support.Extent",
+        "ucd": "time.duration",
+        "unit": "s",
+        "datatype": "float",
+    },
+    {
+        "column_name": "pos_angle",
+        "utype": "Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C3",
+        "unit": "deg",
+        "datatype": "float",
+        "ucd": "pos.eq.pos_angle",
+    },
+    {
+        "column_name": "em_threshold",
+        "utype": "Char.Spectral.Axis.Energy.Threshold",
+        "ucd": "em.energy",
+        "unit": "m",
+        "datatype": "float",
+    },
+    {"column_name": "target_name", "utype": "Target.Name", "ucd": "meta.id;src", "arraysize": "*", "datatype": "char"},
+    {
+        "column_name": "em_min",
+        "utype": "Char.Spectral.Axis.Energy.Min",
+        "ucd": "em.energy",
+        "unit": "m",
+        "datatype": "float",
+    },
+    {
+        "column_name": "em_max",
+        "utype": "Char.Spectral.Axis.Energy.Max",
+        "ucd": "em.energy",
+        "unit": "m",
+        "datatype": "float",
+    },
+    {
+        "column_name": "elevation_min",
+        "utype": "Char.SpatialAxis.Coverage.Extent.angular_distance",
+        "unit": "deg",
+        "datatype": "float",
+        "ucd": "angle.validity",
+    },
+    {
+        "column_name": "elevation_max",
+        "utype": "Char.SpatialAxis.Coverage.Extent.angular_distance",
+        "unit": "deg",
+        "datatype": "float",
+        "ucd": "angle.validity",
+    },
+    {"column_name": "moon_sep_min", "unit": "deg", "datatype": "float", "ucd": "angle.validity"},
+    {"column_name": "moon_sep_max", "unit": "deg", "datatype": "float", "ucd": "angle.validity"},
+    {"column_name": "sun_sep_min", "unit": "deg", "datatype": "float", "ucd": "angle.validity"},
+    {"column_name": "sun_sep_max", "unit": "deg", "datatype": "float", "ucd": "angle.validity"},
+    {
+        "column_name": "facility",
+        "utype": "Char.SpatialAxis.Coverage.Provenance.ObsConfig.Facility.name",
+        "ucd": "meta.id;instr.tel",
+        "arraysize": "*",
+        "datatype": "char",
+    },
+]
 
 
 class PositionParameter(BaseModel):
@@ -32,8 +124,8 @@ class TimeParameter(BaseModel):
     The minimum time is optional, and if not provided, defaults to the current day.
     """
 
-    start: int = Field(..., description="Start time in MJD")
-    end: int = Field(..., description="End time in MJD")
+    start: float = Field(..., description="Start time in MJD")
+    end: float = Field(..., description="End time in MJD")
 
     @model_validator(mode="before")
     @classmethod
@@ -43,21 +135,27 @@ class TimeParameter(BaseModel):
         if time:
             try:
                 # Handle both MJD/MJD and single MJD formats
-                if "/" in time:
-                    start, end = map(int, time.split("/"))
-                    values["start"] = start
-                    values["end"] = end
+                time_parts = time.split("/")
+                if len(time_parts) == 2:
+                    start, end = map(float, time_parts)
+                elif len(time_parts) == 1:
+                    end = float(time_parts[0])
+                    start = Time.now().mjd
                 else:
-                    # If only a single MJD is provided, it's treated as end time
-                    end = int(time)
-                    # Set start to the same as end for single MJD case
-                    # Set start to current time in MJD
-                    current_mjd = int(time.time() / 86400.0 + 40587)  # Convert Unix time to MJD
-                    values["start"] = current_mjd
-                    values["end"] = end
+                    raise ValueError
+                values["start"] = start
+                values["end"] = end
             except ValueError:
-                raise ValueError("Invalid TIME format. Use 'START/END' or single MJD format.")
+                raise ValueError("Invalid TIME format. Use 'START/END' or single '/MJD' format.")
         return values
+
+
+class ValidityAccuracy(StrEnum):
+    """Allowed values for validity_accuracy."""
+
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 
 
 class ResponseFormat(StrEnum):
