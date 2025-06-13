@@ -10,6 +10,8 @@ Additionally, the VOSI Capabilities endpoint is available at `http://localhost:8
 
 Interactive Swagger documentation is available at `http://localhost:8000/docs`.
 
+A script `/scripts/populate_db.py` is provided to populate the database with simulated data. This script can be run after starting the Docker container to fill the database with sample data.
+
 ### Requirements
 
 - Python 3.11+
