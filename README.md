@@ -2,6 +2,8 @@
 
 This project is a Python implementation of the proposed IVOA ObjObsSAP standard using [FastAPI](https://fastapi.tiangolo.com/).
 
+Further completion is awaiting the release of a validator for the standard.
+
 ## Getting Started
 
 Running the project with docker-compose is the recommended way to get started quickly. It sets up a PostgreSQL database with simulated data and runs the FastAPI application. By default, the api will be available at `http://localhost:8000/query`.
