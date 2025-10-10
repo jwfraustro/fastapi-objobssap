@@ -22,10 +22,7 @@ dependencies = [
     "pydantic-settings",
     "typing_inspect",
     "uvicorn",
-    "psycopg2-binary",
-    "sqlalchemy",
     "astropy",
-    "alembic"
 ]
 
 

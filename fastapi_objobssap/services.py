@@ -9,7 +9,6 @@ from astropy.io.votable import from_table, writeto
 from astropy.io.votable.tree import Info, VOTableFile
 from astropy.table import Table
 
-from fastapi_objobssap.models import ObjObsSAPModel, ObsMetadata
 from fastapi_objobssap.responses import XMLResponse
 from fastapi_objobssap.schemas import PositionParameter, TimeParameter
 
@@ -41,43 +40,33 @@ def handle_response_format(results, metadata, response_format, overflow):
 
 
 def perform_objobssap_operation(
-    pos: PositionParameter, time: TimeParameter, min_obs: int, facility: str, maxrec: int, response_format: str, db
+    pos: PositionParameter,
+    time: TimeParameter,
+    min_obs: int,
+    facility: str,
+    maxrec: int,
+    response_format: str,
 ):
     """Perform the ObjObsSAP search with the given parameters."""
 
     overflow = False
 
-    with db as session:
-        query_obj = session.query(ObjObsSAPModel)
+    # # Here we'll simulate our telescope as being in Baltimore, MD, USA
+    # LAT = 39.33286
+    # LON = -76.62338
 
-        # In real applications, POS filtering would most likely involve a more complex spatial query.
-        if pos:
-            query_obj = query_obj.filter(
-                ObjObsSAPModel.s_ra.between(pos.ra - 0.5, pos.ra + 0.5)
-                & ObjObsSAPModel.s_dec.between(pos.dec - 0.5, pos.dec + 0.5)
-            )
+    # location = EarthLocation(lat=LAT, lon=LON, height=0)
+    # observer = Observer(location=location, name="Example Observatory", timezone="US/Eastern")
 
-        # The spec is somewhat ambiguous on how to handle the time range, so we take it here as to include the entire range.
-        if time:
-            query_obj = query_obj.filter(ObjObsSAPModel.t_start >= time.start, ObjObsSAPModel.t_stop <= time.end)
+    # coords = SkyCoord(ra=pos.ra * u.deg, dec=pos.dec * u.deg)
+    # target = FixedTarget(coords)
 
-        if min_obs is not None:
-            query_obj = query_obj.filter(ObjObsSAPModel.t_observability >= min_obs)
+    # time_range = Time(time.start, time.end, format="mjd")
 
-        if facility:
-            query_obj = query_obj.filter(ObjObsSAPModel.facility == facility)
+    # constraints = [AtNightConstraint.twilight_civil()]
 
-        results = query_obj.all()
+    # obs_table = observability_table(constraints, observer, [target], times=time_range)
 
-        if len(results) > maxrec:
-            results = results[:maxrec]
-            overflow = True
-
-        results = [result.to_dict(as_str=False) for result in results]
-
-        metadata = session.query(ObsMetadata).all()
-        metadata = [md.to_dict(as_str=False) for md in metadata]
-
-    response = handle_response_format(results, metadata, response_format, overflow)
+    # response = obs_table
 
     return response

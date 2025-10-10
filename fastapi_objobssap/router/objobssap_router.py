@@ -3,11 +3,10 @@
 
 from typing import Annotated, Optional
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Query
 from fastapi_restful.cbv import cbv
 
 from fastapi_objobssap import schemas
-from fastapi_objobssap.config.database import get_db
 from fastapi_objobssap.services import perform_objobssap_operation
 
 objobssap_router = APIRouter()
@@ -73,7 +72,6 @@ class ObjObsSAPRouter:
                 alias="RESPONSEFORMAT",
             ),
         ] = "votable",
-        db=Depends(get_db),
     ):
         """Perform an ObjObsSAP query."""
 
@@ -89,7 +87,6 @@ class ObjObsSAPRouter:
             facility=facility,
             maxrec=maxrec,
             response_format=responseformat,
-            db=db,
         )
 
         return data

@@ -4,13 +4,11 @@ This project is a Python implementation of the proposed IVOA ObjObsSAP standard 
 
 ## Getting Started
 
-Running the project with docker-compose is the recommended way to get started quickly. It sets up a PostgreSQL database with simulated data and runs the FastAPI application. By default, the api will be available at `http://localhost:8000/query`.
+Running the project with docker-compose is the recommended way to get started quickly. By default, the api will be available at `http://localhost:8000/query`.
 
 Additionally, the VOSI Capabilities endpoint is available at `http://localhost:8000/capabilities`, which provides information about the available operations and their parameters.
 
 Interactive Swagger documentation is available at `http://localhost:8000/docs`.
-
-A script `/scripts/populate_db.py` is provided to populate the database with simulated data. This script can be run after starting the Docker container to fill the database with sample data.
 
 ### Requirements
 

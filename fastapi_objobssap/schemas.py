@@ -4,6 +4,68 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, model_validator
 
+OBJOBSSAP_METADATA = [
+    {
+        "column_name": "t_validity",
+        "utype": "Char.TimeAxis.Coverage.Time",
+        "ucd": None,
+        "unit": "d",
+    },
+    {"column_name": "validity_accuracy"},
+    {"column_name": "validity_predictor"},
+    {
+        "column_name": "t_start",
+        "utype": "Char.TimeAxis.Coverage.Bounds.Limits.StartTime",
+        "ucd": "time.start",
+        "unit": "d",
+    },
+    {
+        "column_name": "t_stop",
+        "utype": "Char.TimeAxis.Coverage.Bounds.Limits.StopTime",
+        "ucd": "time.end",
+        "unit": "d",
+    },
+    {
+        "column_name": "t_observability",
+        "utype": "Char.TimeAxis.Coverage.Support.Extent",
+        "ucd": "time.duration",
+        "unit": "s",
+    },
+    {
+        "column_name": "pos_angle",
+        "utype": "Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C3",
+        "unit": "deg",
+    },
+    {
+        "column_name": "em_threshold",
+        "utype": "Char.Spectral.Axis.Energy.Threshold",
+        "ucd": "em.energy",
+        "unit": "m",
+    },
+    {"column_name": "target_name", "utype": "Target.Name", "ucd": "meta.id;src"},
+    {"column_name": "em_min", "utype": "Char.Spectral.Axis.Energy.Min", "ucd": "em.energy", "unit": "m"},
+    {"column_name": "em_max", "utype": "Char.Spectral.Axis.Energy.Max", "ucd": "em.energy", "unit": "m"},
+    {
+        "column_name": "elevation_min",
+        "utype": "Char.SpatialAxis.Coverage.Extent.angular_distance",
+        "unit": "deg",
+    },
+    {
+        "column_name": "elevation_max",
+        "utype": "Char.SpatialAxis.Coverage.Extent.angular_distance",
+        "unit": "deg",
+    },
+    {"column_name": "moon_sep_min", "unit": "deg"},
+    {"column_name": "moon_sep_max", "unit": "deg"},
+    {"column_name": "sun_sep_min", "unit": "deg"},
+    {"column_name": "sun_sep_max", "unit": "deg"},
+    {
+        "column_name": "facility",
+        "utype": "Char.SpatialAxis.Coverage.Provenance.ObsConfig.Facility.name",
+        "ucd": "meta.id;instr.tel",
+    },
+]
+
 
 class PositionParameter(BaseModel):
     """Schema for a POS parameter."""
@@ -43,20 +105,18 @@ class TimeParameter(BaseModel):
         if time:
             try:
                 # Handle both MJD/MJD and single MJD formats
-                if "/" in time:
-                    start, end = map(int, time.split("/"))
-                    values["start"] = start
-                    values["end"] = end
+                time_parts = time.split("/")
+                if len(time_parts) == 2:
+                    start, end = map(float, time_parts)
+                elif len(time_parts) == 1:
+                    end = float(time_parts[0])
+                    start = end - 7  # Default to a week before
                 else:
-                    # If only a single MJD is provided, it's treated as end time
-                    end = int(time)
-                    # Set start to the same as end for single MJD case
-                    # Set start to current time in MJD
-                    current_mjd = int(time.time() / 86400.0 + 40587)  # Convert Unix time to MJD
-                    values["start"] = current_mjd
-                    values["end"] = end
+                    raise ValueError
+                values["start"] = start
+                values["end"] = end
             except ValueError:
-                raise ValueError("Invalid TIME format. Use 'START/END' or single MJD format.")
+                raise ValueError("Invalid TIME format. Use 'START/END' or single '/MJD' format.")
         return values
 
 
