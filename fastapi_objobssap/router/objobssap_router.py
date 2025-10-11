@@ -45,7 +45,7 @@ class ObjObsSAPRouter:
                 description="Constraint on the minimum observability of the object in seconds.",
                 example=600,
                 ge=0,
-                alias="MINOBS",
+                alias="MIN_OBS",
             ),
         ] = None,
         facility: Annotated[
