@@ -24,7 +24,7 @@ def handle_response_format(results, metadata, response_format, overflow):
 
     # only 'votable' supported in this example implementation
     if response_format == "votable":
-        table = Table(rows=results, names=[meta["column_name"] for meta in metadata])
+        table = Table(rows=results, names=[meta["column_name"] for meta in metadata if meta["column_name"] in results[0]])
         votable: VOTableFile = from_table(table)
 
         if overflow:
@@ -101,8 +101,8 @@ def parse_results(results):
 
     parsed_results = []
     for start, end in results:
-        result_dict = {col["name"]: None for col in OBJOBSSAP_METADATA}
-        result_dict = result_dict | {
+        # result_dict = {col["column_name"]: None for col in OBJOBSSAP_METADATA}
+        result_dict = {
             "t_validity": start + 10,  # say the observation is valid 10 days after it starts
             "validity_accuracy": ValidityAccuracy.HIGH,
             "validity_predictor": "Example Observatory",
