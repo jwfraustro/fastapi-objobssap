@@ -28,7 +28,7 @@ def handle_response_format(results, metadata, response_format, overflow):
         votable: VOTableFile = from_table(table)
 
         if overflow:
-            votable.infos.append(Info(name="QUERY_STATUS", value="OVERFLOW"))
+            votable.resources[0].infos.append(Info(name="QUERY_STATUS", value="OVERFLOW"))
 
         for meta in metadata:
             for field in votable.get_first_table().fields:
