@@ -67,6 +67,7 @@ def get_observable_intervals(observer: Observer, target: FixedTarget, time_range
         set_time = observer.target_set_time(rise_time, target, which="next")
 
         # targets that are always up or down
+        # TODO: replace this with TargetNeverUpWarning/TargetAlwaysUpWarning handling
         if np.ma.is_masked(rise_time.mjd) or np.ma.is_masked(set_time.mjd):
             alt = observer.altaz(Time(current_time, format="mjd"), target).alt.deg
             if alt > 0:
