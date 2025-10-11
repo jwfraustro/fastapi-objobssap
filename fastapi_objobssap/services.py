@@ -11,7 +11,7 @@ from astroplan import FixedTarget, Observer
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.io.votable import from_table, writeto
-from astropy.io.votable.tree import Info, VOTableFile
+from astropy.io.votable.tree import Group, Info, Param, Resource, VOTableFile
 from astropy.table import Table
 from astropy.time import Time
 
@@ -24,7 +24,9 @@ def handle_response_format(results, metadata, response_format, overflow):
 
     # only 'votable' supported in this example implementation
     if response_format == "votable":
-        table = Table(rows=results, names=[meta["column_name"] for meta in metadata if meta["column_name"] in results[0]])
+        table = Table(
+            rows=results, names=[meta["column_name"] for meta in metadata if meta["column_name"] in results[0]]
+        )
         votable: VOTableFile = from_table(table)
 
         if overflow:
@@ -39,6 +41,33 @@ def handle_response_format(results, metadata, response_format, overflow):
                     field.datatype = meta.get("datatype")
                     field.arraysize = meta.get("arraysize")
                     break
+
+        # DataLink service descriptor
+        datalink_resource = Resource(name="this", type="meta", utype="adhoc:service")
+        datalink_resource.params.append(
+            Param(
+                votable,
+                name="standardID",
+                value="ivo://ivoa.net/std/ObjObsSAP#query-0.3",
+                datatype="char",
+                arraysize="*",
+            )
+        )
+        datalink_resource.params.append(
+            Param(
+                votable,
+                name="accessURL",
+                value="http://example.com/objobssap/query",
+                datatype="char",
+                arraysize="*",
+            )
+        )
+        input_params = Group(datalink_resource, name="inputParams")
+        input_params.entries.append(Param(votable, name="pos", datatype="char", arraysize="*"))
+        input_params.entries.append(Param(votable, name="time", datatype="float", arraysize="*", unit="d"))
+        input_params.entries.append(Param(votable, name="min_obs", datatype="float", arraysize="*", unit="s"))
+        datalink_resource.groups.append(input_params)
+        votable.resources.append(datalink_resource)
 
         buffer = io.BytesIO()
         writeto(votable, buffer)
