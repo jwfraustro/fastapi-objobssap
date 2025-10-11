@@ -101,13 +101,14 @@ def parse_results(results):
 
     parsed_results = []
     for start, end in results:
-        result_dict = {
+        result_dict = {col["name"]: None for col in OBJOBSSAP_METADATA}
+        result_dict = result_dict | {
             "t_validity": start + 10,  # say the observation is valid 10 days after it starts
             "validity_accuracy": ValidityAccuracy.HIGH,
             "validity_predictor": "Example Observatory",
             "t_start": start,
-            "t_end": end,
-            "t_observability": end - start * 86400,  # in seconds
+            "t_stop": end,
+            "t_observability": (end - start) * 86400,  # in seconds
             "facility": "Example Observatory",
         }
         parsed_results.append(result_dict)
