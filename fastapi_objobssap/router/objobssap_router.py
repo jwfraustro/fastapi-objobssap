@@ -3,6 +3,7 @@
 
 from typing import Annotated, Optional
 
+from astropy.time import Time
 from fastapi import APIRouter, Query
 from fastapi_restful.cbv import cbv
 
@@ -79,6 +80,9 @@ class ObjObsSAPRouter:
 
         if time:
             time = schemas.TimeParameter(TIME=time)
+        else:
+            # If no time is provided, default to the current day, and a week after
+            time = schemas.TimeParameter(start=Time.now().mjd, end=Time.now().mjd + 7)
 
         data = perform_objobssap_operation(
             pos=position,
