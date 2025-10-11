@@ -10,31 +10,40 @@ OBJOBSSAP_METADATA = [
         "utype": "Char.TimeAxis.Coverage.Time",
         "ucd": None,
         "unit": "d",
+        "datatype": "float",
     },
-    {"column_name": "validity_accuracy"},
-    {"column_name": "validity_predictor"},
+    {
+        "column_name": "validity_accuracy",
+        "datatype": "char",
+        "arraysize": "*",
+    },
+    {"column_name": "validity_predictor", "datatype": "char", "arraysize": "*"},
     {
         "column_name": "t_start",
         "utype": "Char.TimeAxis.Coverage.Bounds.Limits.StartTime",
         "ucd": "time.start",
         "unit": "d",
+        "datatype": "float",
     },
     {
         "column_name": "t_stop",
         "utype": "Char.TimeAxis.Coverage.Bounds.Limits.StopTime",
         "ucd": "time.end",
         "unit": "d",
+        "datatype": "float",
     },
     {
         "column_name": "t_observability",
         "utype": "Char.TimeAxis.Coverage.Support.Extent",
         "ucd": "time.duration",
         "unit": "s",
+        "datatype": "float",
     },
     {
         "column_name": "pos_angle",
         "utype": "Char.SpatialAxis.Coverage.Location.Coord.Position2D.Value2.C3",
         "unit": "deg",
+        "datatype": "float",
     },
     {
         "column_name": "em_threshold",
@@ -63,6 +72,8 @@ OBJOBSSAP_METADATA = [
         "column_name": "facility",
         "utype": "Char.SpatialAxis.Coverage.Provenance.ObsConfig.Facility.name",
         "ucd": "meta.id;instr.tel",
+        "arraysize": "*",
+        "datatype": "char",
     },
 ]
 
@@ -118,6 +129,14 @@ class TimeParameter(BaseModel):
             except ValueError:
                 raise ValueError("Invalid TIME format. Use 'START/END' or single '/MJD' format.")
         return values
+
+
+class ValidityAccuracy(StrEnum):
+    """Allowed values for validity_accuracy."""
+
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 
 
 class ResponseFormat(StrEnum):
