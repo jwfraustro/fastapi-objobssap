@@ -4,13 +4,19 @@ This module should be replaced with the implementation of the developed service.
 """
 
 import io
+from datetime import timedelta
 
+import numpy as np
+from astroplan import FixedTarget, Observer
+from astropy import units as u
+from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.io.votable import from_table, writeto
 from astropy.io.votable.tree import Info, VOTableFile
 from astropy.table import Table
+from astropy.time import Time
 
 from fastapi_objobssap.responses import XMLResponse
-from fastapi_objobssap.schemas import PositionParameter, TimeParameter
+from fastapi_objobssap.schemas import OBJOBSSAP_METADATA, PositionParameter, TimeParameter, ValidityAccuracy
 
 
 def handle_response_format(results, metadata, response_format, overflow):
@@ -30,6 +36,8 @@ def handle_response_format(results, metadata, response_format, overflow):
                     field.utype = meta.get("utype")
                     field.ucd = meta.get("ucd")
                     field.unit = meta.get("unit")
+                    field.datatype = meta.get("datatype")
+                    field.arraysize = meta.get("arraysize")
                     break
 
         buffer = io.BytesIO()
@@ -37,6 +45,72 @@ def handle_response_format(results, metadata, response_format, overflow):
         buffer.seek(0)
 
         return XMLResponse(content=buffer.read())
+
+
+def get_observable_intervals(observer: Observer, target: FixedTarget, time_range: TimeParameter, maxrec: int):
+    """Get observable intervals for a target given an observer and time range.
+
+    Technically this will return intervals that are past the end of the time range if the target is up at the end of the range.
+    """
+
+    current_time = time_range.start
+
+    obs_table = []
+    overflow = False
+
+    while current_time < time_range.end:
+        if len(obs_table) >= maxrec:
+            overflow = True
+            break
+
+        rise_time = observer.target_rise_time(Time(current_time, format="mjd"), target, which="next")
+        set_time = observer.target_set_time(rise_time, target, which="next")
+
+        # targets that are always up or down
+        if np.isnan(rise_time.mjd) or np.isnan(set_time.mjd):
+            alt = observer.altaz(current_time, target).alt.deg
+            if alt > 0:
+                obs_table.append((time_range.start, time_range.end))
+            break
+
+        if not np.isnan(rise_time.mjd) and not np.isnan(set_time.mjd):
+            # if rise_time > set_time:
+            #     # target is up at the start of the range
+            #     obs_table.append((current_time.mjd, set_time.mjd))
+
+            # # clip to the time range
+            # start_clip = max(rise_time.mjd, time_range.start)
+            # end_clip = min(set_time.mjd, time_range.end)
+
+            # if start_clip < end_clip:
+            #     obs_table.append((start_clip, end_clip))
+
+            obs_table.append((rise_time.mjd, set_time.mjd))
+
+            current_time = set_time + timedelta(minutes=1)
+            current_time = current_time.mjd
+        else:
+            break
+
+    return obs_table, overflow
+
+
+def parse_results(results):
+    """Parse the results into the final output format."""
+
+    parsed_results = []
+    for start, end in results:
+        result_dict = {
+            "t_validity": start + 10,  # say the observation is valid 10 days after it starts
+            "validity_accuracy": ValidityAccuracy.HIGH,
+            "validity_predictor": "Example Observatory",
+            "t_start": start,
+            "t_end": end,
+            "t_observability": end - start * 86400,  # in seconds
+            "facility": "Example Observatory",
+        }
+        parsed_results.append(result_dict)
+    return parsed_results
 
 
 def perform_objobssap_operation(
@@ -50,23 +124,31 @@ def perform_objobssap_operation(
     """Perform the ObjObsSAP search with the given parameters."""
 
     overflow = False
+    results = []
 
-    # # Here we'll simulate our telescope as being in Baltimore, MD, USA
-    # LAT = 39.33286
-    # LON = -76.62338
+    # Here we'll simulate our telescope as being in Baltimore, MD, USA
+    LAT = 39.33286
+    LON = -76.62338
 
-    # location = EarthLocation(lat=LAT, lon=LON, height=0)
-    # observer = Observer(location=location, name="Example Observatory", timezone="US/Eastern")
+    location = EarthLocation(lat=LAT, lon=LON, height=0)
+    observer = Observer(location=location, name="Example Observatory", timezone="US/Eastern")
 
-    # coords = SkyCoord(ra=pos.ra * u.deg, dec=pos.dec * u.deg)
-    # target = FixedTarget(coords)
+    # If the user has supplied anything other than "Example Observatory" for the facility,
+    # it seems a little silly to continue, no?
+    if facility and facility.lower() != "example observatory".lower():
+        results = parse_results(results)
+        return handle_response_format(results, OBJOBSSAP_METADATA, response_format, overflow)
 
-    # time_range = Time(time.start, time.end, format="mjd")
+    coords = SkyCoord(ra=pos.ra * u.deg, dec=pos.dec * u.deg)
+    target = FixedTarget(coords)
 
-    # constraints = [AtNightConstraint.twilight_civil()]
+    observable_times, overflow = get_observable_intervals(observer, target, time, maxrec)
 
-    # obs_table = observability_table(constraints, observer, [target], times=time_range)
+    # check that the intervals are long enough
+    if min_obs and min_obs > 0:
+        observable_times = [
+            (start, end) for start, end in observable_times if (end - start) * 86400 >= min_obs
+        ]  # 86400 seconds in a day
 
-    # response = obs_table
-
-    return response
+    results = parse_results(observable_times)
+    return handle_response_format(results, OBJOBSSAP_METADATA, response_format, overflow)
