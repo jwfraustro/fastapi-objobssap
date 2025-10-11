@@ -1,8 +1,8 @@
 # FastAPI-ObjObsSAP
 
-This project is a Python implementation of the proposed IVOA ObjObsSAP standard using [FastAPI](https://fastapi.tiangolo.com/).
+This project is an example Python implementation of the proposed IVOA ObjObsSAP standard using [FastAPI](https://fastapi.tiangolo.com/).
 
-Further completion is awaiting the release of a validator for the standard.
+This example service provides an API to calculate observable times for celestial objects from an example telescope location (Baltimore, MD, USA) using the [Astroplan](https://astroplan.readthedocs.io/en/latest/) library.
 
 ## Getting Started
 
@@ -29,7 +29,7 @@ docker-compose up
 ```bash
 conda env create -f environment.yml
 conda activate fastapi-objobssap
-pip install - requirements.txt
+pip install -r requirements.txt
 pip install -e .
 uvicorn fastapi_objobssap.main:app --reload
 ```
