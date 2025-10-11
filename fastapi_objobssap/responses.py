@@ -6,4 +6,4 @@ from fastapi.responses import Response
 class XMLResponse(Response):
     """VOTable response class"""
 
-    media_type = "text/xml"
+    media_type = "application/x-votable+xml"
