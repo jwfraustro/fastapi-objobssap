@@ -2,6 +2,7 @@
 
 from enum import StrEnum
 
+from astropy.time import Time
 from pydantic import BaseModel, Field, model_validator
 
 OBJOBSSAP_METADATA = [
@@ -105,8 +106,8 @@ class TimeParameter(BaseModel):
     The minimum time is optional, and if not provided, defaults to the current day.
     """
 
-    start: int = Field(..., description="Start time in MJD")
-    end: int = Field(..., description="End time in MJD")
+    start: float = Field(..., description="Start time in MJD")
+    end: float = Field(..., description="End time in MJD")
 
     @model_validator(mode="before")
     @classmethod
@@ -121,7 +122,7 @@ class TimeParameter(BaseModel):
                     start, end = map(float, time_parts)
                 elif len(time_parts) == 1:
                     end = float(time_parts[0])
-                    start = end - 7  # Default to a week before
+                    start = Time.now().mjd
                 else:
                     raise ValueError
                 values["start"] = start
