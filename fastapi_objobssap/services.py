@@ -24,7 +24,7 @@ def handle_response_format(results, metadata, response_format, overflow):
 
     # only 'votable' supported in this example implementation
     if response_format == "votable":
-        table = Table(results)
+        table = Table(rows=results, names=[meta["column_name"] for meta in metadata])
         votable: VOTableFile = from_table(table)
 
         if overflow:
@@ -67,8 +67,8 @@ def get_observable_intervals(observer: Observer, target: FixedTarget, time_range
         set_time = observer.target_set_time(rise_time, target, which="next")
 
         # targets that are always up or down
-        if np.isnan(rise_time.mjd) or np.isnan(set_time.mjd):
-            alt = observer.altaz(current_time, target).alt.deg
+        if np.ma.is_masked(rise_time.mjd) or np.ma.is_masked(set_time.mjd):
+            alt = observer.altaz(Time(current_time, format="mjd"), target).alt.deg
             if alt > 0:
                 obs_table.append((time_range.start, time_range.end))
             break
