@@ -23,6 +23,7 @@ dependencies = [
     "typing_inspect",
     "uvicorn",
     "astropy",
+    "astroplan"
 ]
 
 
