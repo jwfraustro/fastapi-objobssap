@@ -16,6 +16,8 @@ from fastapi.exceptions import RequestValidationError
 
 app = FastAPI(
     title="ObjObsSAP API",
+    description="An implementation of the IVOA ObjObsSAP standard using FastAPI.",
+    root_path=get_settings().ROOT_PATH,
 )
 
 # Middleware
