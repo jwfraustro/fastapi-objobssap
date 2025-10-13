@@ -20,7 +20,9 @@ def votable_error_response(message: str, status_code: int) -> Response:
 
     INFO element containing the error as preferred by https://www.ivoa.net/documents/REC/DAL/ConeSearch-20080222.html
     """
-    xml_response = XMLResponse(content=VOTABLE_ERROR_XML.format(error=message), status_code=status_code, media_type="text/xml")
+    xml_response = XMLResponse(
+        content=VOTABLE_ERROR_XML.format(error=message), status_code=status_code, media_type="text/xml"
+    )
     return xml_response
 
 
@@ -28,9 +30,13 @@ async def general_exception_handler(request, exc) -> XMLResponse:  # pylint: dis
     """
     General exception handler for unhandled exceptions.
     """
-
     # Throw a generic error message
     error_str = "An unexpected error occurred. Please try again later."
+
+    # If there are chained exceptions, include their messages for more context
+    if exc.exceptions:
+        error_str = [str(e) for e in exc.exceptions if str(e)]  # type: ignore
+
     return votable_error_response(error_str, 500)
 
 
