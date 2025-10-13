@@ -20,7 +20,7 @@ def votable_error_response(message: str, status_code: int) -> Response:
 
     INFO element containing the error as preferred by https://www.ivoa.net/documents/REC/DAL/ConeSearch-20080222.html
     """
-    xml_response = XMLResponse(content=VOTABLE_ERROR_XML.format(error=message), status_code=status_code)
+    xml_response = XMLResponse(content=VOTABLE_ERROR_XML.format(error=message), status_code=status_code, media_type="text/xml")
     return xml_response
 
 
