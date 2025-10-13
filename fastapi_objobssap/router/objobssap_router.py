@@ -8,7 +8,8 @@ from fastapi import APIRouter, Query
 from fastapi_restful.cbv import cbv
 
 from fastapi_objobssap import schemas
-from fastapi_objobssap.services import perform_objobssap_operation
+from fastapi_objobssap.schemas import OBJOBSSAP_METADATA
+from fastapi_objobssap.services import handle_response_format, perform_objobssap_operation
 
 objobssap_router = APIRouter()
 
@@ -21,7 +22,8 @@ class ObjObsSAPRouter:
     def objobssap_request(
         self,
         pos: Annotated[
-            str,
+            Optional[str],  # this should technically be required, but the Euro-VO validator tries to send a MAXREC=0
+            # request without a POS parameter to validate the service. >:(
             Query(
                 ...,
                 description="Position of object in ICRS RA and DEC coordinates",
@@ -29,7 +31,7 @@ class ObjObsSAPRouter:
                 regex=r"([-+]?\d*\.?\d+),([-+]?\d*\.?\d+)",
                 alias="POS",
             ),
-        ],
+        ] = None,
         time: Annotated[
             Optional[str],
             Query(
@@ -75,6 +77,13 @@ class ObjObsSAPRouter:
         ] = "votable",
     ):
         """Perform an ObjObsSAP query."""
+
+        #the Euro-VO validator tries to send a MAXREC=0 request without a POS parameter to validate the service. >:(
+        if maxrec == 0:
+            return handle_response_format([], OBJOBSSAP_METADATA, responseformat, True)
+
+        if not pos:
+            raise ValueError("POS parameter is required.")
 
         position = schemas.PositionParameter(POS=pos)
 
