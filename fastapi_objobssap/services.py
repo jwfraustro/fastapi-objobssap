@@ -4,10 +4,11 @@ This module should be replaced with the implementation of the developed service.
 """
 
 import io
+import warnings
 from datetime import timedelta
 
 import numpy as np
-from astroplan import FixedTarget, Observer
+from astroplan import FixedTarget, Observer, TargetAlwaysUpWarning, TargetNeverUpWarning
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord
 from astropy.io.votable import from_table, writeto
@@ -18,15 +19,22 @@ from astropy.time import Time
 from fastapi_objobssap.responses import XMLResponse
 from fastapi_objobssap.schemas import OBJOBSSAP_METADATA, PositionParameter, TimeParameter, ValidityAccuracy
 
+warnings.filterwarnings("error", category=TargetNeverUpWarning)
+warnings.filterwarnings("error", category=TargetAlwaysUpWarning)
+
 
 def handle_response_format(results, metadata, response_format, overflow):
     """Handle the response format based on the requested format."""
 
-    # only 'votable' supported in this example implementation
+    # only votable supported in this example implementation
+    # this votable generation is hacky and brittle and should be replaced with a proper implementation
+    column_name_source = []
+    if results and len(results) > 0:
+        column_name_source = [meta["column_name"] for meta in metadata if meta["column_name"] in results[0]]
+    else:
+        column_name_source = [meta["column_name"] for meta in metadata]
     if response_format == "votable":
-        table = Table(
-            rows=results, names=[meta["column_name"] for meta in metadata if meta["column_name"] in results[0]]
-        )
+        table = Table(rows=results, names=column_name_source)
         votable: VOTableFile = from_table(table)
 
         if overflow:
@@ -92,8 +100,14 @@ def get_observable_intervals(observer: Observer, target: FixedTarget, time_range
             overflow = True
             break
 
-        rise_time = observer.target_rise_time(Time(current_time, format="mjd"), target, which="next")
-        set_time = observer.target_set_time(rise_time, target, which="next")
+        try:
+            rise_time = observer.target_rise_time(Time(current_time, format="mjd"), target, which="next")
+        except TargetNeverUpWarning:
+            break
+        try:
+            set_time = observer.target_set_time(rise_time, target, which="next")
+        except TargetAlwaysUpWarning:
+            break
 
         # targets that are always up or down
         # TODO: replace this with TargetNeverUpWarning/TargetAlwaysUpWarning handling
