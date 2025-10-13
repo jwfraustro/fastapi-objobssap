@@ -14,8 +14,6 @@ from fastapi_objobssap.middleware import UppercaseQueryParamsMiddleware
 from fastapi_objobssap.router.objobssap_router import objobssap_router
 from fastapi_objobssap.router.vosi import vosi_router
 
-print(get_settings().ROOT_PATH)
-
 app = FastAPI(
     title="ObjObsSAP API",
     description="An implementation of the IVOA ObjObsSAP standard using FastAPI.",
