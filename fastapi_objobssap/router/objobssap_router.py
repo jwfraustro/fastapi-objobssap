@@ -10,6 +10,7 @@ from fastapi_restful.cbv import cbv
 from fastapi_objobssap import schemas
 from fastapi_objobssap.schemas import OBJOBSSAP_METADATA
 from fastapi_objobssap.services import handle_response_format, perform_objobssap_operation
+from fastapi_objobssap.exceptions import votable_error_response
 
 objobssap_router = APIRouter()
 
@@ -83,7 +84,7 @@ class ObjObsSAPRouter:
             return handle_response_format([], OBJOBSSAP_METADATA, responseformat, True)
 
         if not pos:
-            raise ValueError("POS parameter is required.")
+            return votable_error_response("POS parameter is required.", 400)
 
         position = schemas.PositionParameter(POS=pos)
 
