@@ -19,7 +19,7 @@ class VOSIRouter:
 
         hostname = str(request.url).replace("capabilities", "")
 
-        VOSI_RESPONSE = f"""
+        VOSI_RESPONSE = """
 <vosi:capabilities
         xmlns:vosi="http://www.ivoa.net/xml/VOSICapabilities/v1.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -27,8 +27,7 @@ class VOSIRouter:
         <capability standardID="ivo://ivoa.net/std/VOSI#capabilities">
                 <interface xsi:type="vs:ParamHTTP" version="1.0">
                         <accessURL use="full">
-                                http://example.com/ObjObsSAP/capabilities
-                                9
+                                https://vo-labs.dev/objobssap/api/capabilities
                         </accessURL>
                 </interface>
         </capability>
@@ -36,7 +35,7 @@ class VOSIRouter:
         <capability standardID="ivo://ivoa.net/std/ObjObsSAP#query-1">
                 <interface xsi:type="vs:ParamHTTP" role="std" version="1.0">
                         <accessURL>
-                                {hostname}query
+                                https://vo-labs.dev/objobssap/api/query
                         </accessURL>
                 </interface>
         </capability>
